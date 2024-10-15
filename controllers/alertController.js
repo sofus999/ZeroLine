@@ -1,58 +1,65 @@
+import db from '../config/db.js';  // Assuming the DB connection is set up in config/db.js
 import { generateAISuggestion } from '../services/openaiService.js';
 import { getCMDBData } from './cmdbController.js';
-import { getRecentIncidents } from '../services/csmsService.js'; 
+import { getRecentIncidents } from '../services/csmsService.js';
 
-let alerts = [];  // In-memory store for alerts (replace with DB in production)
-
+// Handle incoming alert (from Zabbix)
 export const handleAlert = async (req, res) => {
   try {
-    console.log('Incoming request body:', req.body);  // Log the request body
+    const { hostname, alert_type, error_message } = req.body;
 
-    const { hostname } = req.body;
+    // Validate the incoming request
+    if (!hostname || !alert_type || !error_message) {
+      return res.status(400).json({ message: 'Missing required fields: hostname, alert_type, or error_message' });
+    }
 
     console.log('Hostname:', hostname);  // Log hostname for debugging
 
-    // Fetch CMDB data
+    // Fetch CMDB data from ServiceNow
     const cmdbInfo = await getCMDBData(hostname);
 
-    if (!hostname) {
-      return res.status(400).json({ message: 'Hostname is missing in the request body' });
+    if (!cmdbInfo) {
+      console.log(`CMDB data not found for ${hostname}`);
     }
 
-    // Attempt to fetch recent incidents (optional)
+    // Fetch recent incidents based on the 7-day criteria
     const recentIncidents = await getRecentIncidents(hostname);
 
     // Generate AI suggestion based on the alert, CMDB info, and incidents
     const suggestion = await generateAISuggestion(req.body, cmdbInfo, recentIncidents);
 
-    // Create the alert object
-    const alertData = {
-      id: alerts.length + 1,  // Temporary in-memory ID
-      hostname: req.body.hostname,
-      alert_type: req.body.alert_type,
-      error_message: req.body.error_message,
-      cmdb_info: cmdbInfo || 'No CMDB data available',
-      recent_incidents: recentIncidents || 'No recent incidents recorded',
-      suggestion: suggestion,
-      feedback: null  // No feedback yet
-    };
+    // Insert the alert into the database
+    const insertQuery = `
+      INSERT INTO alerts (hostname, alert_type, error_message, cmdb_info, recent_incidents, suggestion)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id;
+    `;
+    const values = [
+      hostname,
+      alert_type,
+      error_message,
+      JSON.stringify(cmdbInfo),         // Store CMDB info in JSON format
+      JSON.stringify(recentIncidents),  // Store incidents in JSON format
+      suggestion,
+    ];
 
-    // Store the alert in-memory (replace with DB for production)
-    alerts.push(alertData);
+    const result = await db.query(insertQuery, values);
+    const alertId = result.rows[0].id;
 
-    // Return the alert with the AI suggestion
-    res.status(201).json({ message: 'Alert received', alert: alertData });
+    // Respond with the alert ID and suggestion
+    res.status(201).json({ message: 'Alert processed', alertId, suggestion });
   } catch (error) {
     console.error('Error handling alert:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
-  
 };
 
 // Fetch all alerts (for the dashboard)
-export const getAlerts = (req, res) => {
+export const getAlerts = async (req, res) => {
   try {
-    res.json(alerts);  // Return the in-memory list of alerts
+    const query = 'SELECT * FROM alerts ORDER BY created_at DESC';
+    const result = await db.query(query);
+    res.json(result.rows);  // Return the alerts from the database
   } catch (error) {
     console.error('Error fetching alerts:', error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -60,23 +67,31 @@ export const getAlerts = (req, res) => {
 };
 
 // Submit feedback for a specific alert
-export const submitFeedback = (req, res) => {
+export const submitFeedback = async (req, res) => {
   try {
     const { id } = req.params;
     const { feedback } = req.body;
 
-    // Find the alert by ID
-    const alert = alerts.find((a) => a.id === parseInt(id));
-
-    if (alert) {
-      // Update the alert with the feedback
-      alert.feedback = feedback;
-      res.json({ message: 'Feedback received', alert });
-    } else {
-      res.status(404).json({ message: 'Alert not found' });
+    if (!feedback) {
+      return res.status(400).json({ message: 'Feedback is required' });
     }
+
+    // Update the feedback in the database
+    const updateQuery = `
+      UPDATE alerts
+      SET feedback = $1
+      WHERE id = $2
+      RETURNING *;
+    `;
+    const result = await db.query(updateQuery, [feedback, id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+
+    res.json({ message: 'Feedback submitted', alert: result.rows[0] });
   } catch (error) {
-      console.error('Error submitting feedback:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+    console.error('Error submitting feedback:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };

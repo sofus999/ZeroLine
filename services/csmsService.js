@@ -10,30 +10,34 @@ const apiKey = process.env.SERVICENOW_API_KEY;
 // Function to fetch recent incidents for a hostname from ServiceNow
 export const getRecentIncidents = async (hostname) => {
   try {
-    // Modify the query to match your ServiceNow incident table structure
-    const url = `${serviceNowInstance}/api/now/table/incident?sysparm_query=cmdb_ci.name=${hostname}&sysparm_limit=5`;
+    // Get the date 7 days ago
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const formattedDate = sevenDaysAgo.toISOString().split('T')[0];  // Get only date part in 'YYYY-MM-DD' format
 
-    // Make GET request to ServiceNow using basic authentication
-    const response = await axios.get(url, {
+    // Query ServiceNow for incidents related to this hostname in the last 7 days
+    const response = await axios.get(`${serviceNowInstance}/api/now/table/incident`, {
+      params: {
+        sysparm_query: `sys_created_on>=${formattedDate}^cmdb_ci.name=${hostname}`,
+        sysparm_fields: 'number,short_description,close_notes',  // Only fetch relevant fields
+        sysparm_limit: 10,  // Limit to avoid pulling too many
+      },
       headers: {
         'Authorization': `Basic ${apiKey}`,
-        'Accept': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
-    if (response.data.result.length === 0) {
-      console.log(`No incidents found for ${hostname}`);
-      return [];
-    }
+    const incidents = response.data.result;
 
-    return response.data.result.map((incident) => ({
+    // Return incidents with only the needed fields
+    return incidents.map((incident) => ({
       number: incident.number,
       short_description: incident.short_description,
-      state: incident.state,
-      resolved_at: incident.resolved_at,
+      close_notes: incident.close_notes || 'No close notes available',
     }));
   } catch (error) {
     console.error('Error fetching incidents from ServiceNow:', error);
-    return null;  // Return null if there was an error fetching incidents
+    return [];  // Return empty if no incidents are found or an error occurs
   }
 };

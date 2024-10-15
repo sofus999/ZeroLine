@@ -1,0 +1,40 @@
+2024-10-15 17:56:29.655 -03 [6431] LOG:  starting PostgreSQL 15.8 (Debian 15.8-0+deb12u1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+2024-10-15 17:56:29.658 -03 [6431] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2024-10-15 17:56:29.663 -03 [6431] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2024-10-15 17:56:29.675 -03 [6434] LOG:  database system was shut down at 2024-10-15 17:55:40 -03
+2024-10-15 17:56:29.685 -03 [6431] LOG:  database system is ready to accept connections
+2024-10-15 18:01:29.887 -03 [6432] LOG:  checkpoint starting: time
+2024-10-15 18:01:33.940 -03 [6432] LOG:  checkpoint complete: wrote 43 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=4.019 s, sync=0.014 s, total=4.053 s; sync files=11, longest=0.006 s, average=0.002 s; distance=252 kB, estimate=252 kB
+2024-10-15 18:05:52.277 -03 [6499] ERROR:  type "enum" does not exist at character 191
+2024-10-15 18:05:52.277 -03 [6499] STATEMENT:  CREATE TABLE alerts (
+	    id SERIAL PRIMARY KEY,
+	    hostname VARCHAR(255) NOT NULL,
+	    alert_type VARCHAR(255) NOT NULL,
+	    error_message TEXT NOT NULL,
+	    suggestion TEXT,
+	    severity ENUM('info', 'warning', 'critical') DEFAULT 'info',
+	    resolved BOOLEAN DEFAULT false,
+	    resolution_time TIMESTAMP,
+	    source VARCHAR(255),
+	    tags TEXT[],
+	    related_incidents JSONB,
+	    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+2024-10-15 18:06:30.041 -03 [6432] LOG:  checkpoint starting: time
+2024-10-15 18:08:02.944 -03 [6432] LOG:  checkpoint complete: wrote 925 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=92.818 s, sync=0.073 s, total=92.904 s; sync files=300, longest=0.003 s, average=0.001 s; distance=4231 kB, estimate=4231 kB
+2024-10-15 18:11:31.046 -03 [6432] LOG:  checkpoint starting: time
+2024-10-15 18:11:35.943 -03 [6432] LOG:  checkpoint complete: wrote 49 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=4.823 s, sync=0.064 s, total=4.897 s; sync files=41, longest=0.019 s, average=0.002 s; distance=159 kB, estimate=3824 kB
+2024-10-15 18:22:44.250 -03 [6499] ERROR:  syntax error at or near "TABLE" at character 8
+2024-10-15 18:22:44.250 -03 [6499] STATEMENT:  DELETE TABLE alerts
+	select * alerts
+	select * alert;
+2024-10-15 18:22:52.711 -03 [6499] ERROR:  syntax error at or near "ALERTS" at character 10
+2024-10-15 18:22:52.711 -03 [6499] STATEMENT:  SELECT * ALERTS;
+2024-10-15 18:23:05.251 -03 [6499] ERROR:  syntax error at or near "TABLE" at character 8
+2024-10-15 18:23:05.251 -03 [6499] STATEMENT:  DELETE TABLE ALERTS;
+2024-10-15 18:23:22.976 -03 [6499] ERROR:  relation "alerts" does not exist at character 15
+2024-10-15 18:23:22.976 -03 [6499] STATEMENT:  SELECT * from alerts;
+2024-10-15 18:26:32.248 -03 [6432] LOG:  checkpoint starting: time
+2024-10-15 18:26:36.217 -03 [6432] LOG:  checkpoint complete: wrote 40 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=3.933 s, sync=0.022 s, total=3.972 s; sync files=35, longest=0.005 s, average=0.001 s; distance=183 kB, estimate=3460 kB
+2024-10-15 19:25:22.117 -03 [6431] LOG:  received smart shutdown request
+2024-10-15 19:25:50.255 -03 [6478] FATAL:  terminating connection due to unexpected postmaster exit
