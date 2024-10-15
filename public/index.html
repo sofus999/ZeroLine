@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert Dashboard - Feedback Loop</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Alert Dashboard</h1>
+    <p>Review the alerts and provide feedback for suggested solutions.</p>
+  </header>
+
+  <main>
+    <div id="alerts-container">
+      <!-- Alerts will be displayed here dynamically -->
+    </div>
+  </main>
+
+  <!-- Feedback Form Modal -->
+  <div id="feedbackModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Submit Feedback</h2>
+      <form id="feedback-form">
+        <label for="feedback">How was the suggested solution?</label>
+        <textarea id="feedback" name="feedback" rows="4" placeholder="Provide your feedback here..."></textarea>
+        <button type="submit">Submit Feedback</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2024 Your MSP | Improving through feedback.</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!-- views/dashboard.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Troubleshooting Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>AI Troubleshooting Dashboard</h1>
+    <% alerts.forEach(function(alert) { %>
+    <div class="alert">
+        <h2><%= alert.alert_type %> on <%= alert.hostname %></h2>
+        <p><strong>Error Message:</strong> <%= alert.error_message %></p>
+        <p><strong>Suggested Resolution:</strong> <%= alert.suggestion %></p>
+        <div class="feedback">
+            <label>Was this suggestion helpful?</label>
+            <% if (!alert.feedback) { %>
+                <button onclick="submitFeedback(<%= alert.id %>, 'useful')">Yes</button>
+                <button onclick="submitFeedback(<%= alert.id %>, 'not_useful')">No</button>
+            <% } else { %>
+                <p><strong>Your Feedback:</strong> <%= alert.feedback %></p>
+            <% } %>
+        </div>
+    </div>
+    <% }); %>
+    <script>
+        function submitFeedback(alertId, feedback) {
+            fetch('/submit_feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ alert_id: alertId, feedback: feedback }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Feedback submitted.');
+                location.reload(); // Refresh the page to show updated feedback
+            });
+        }
+    </script>
+</body>
+</html>
