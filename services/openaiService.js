@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,  // Ensure your API key is loaded from .env
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Enhanced AI suggestion generation function
