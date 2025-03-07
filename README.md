@@ -27,10 +27,4 @@ ZeroLine is a Node.js application that serves as an intermediary between monitor
 - **Authentication**: JWT-based authentication with role-based access control
 - **Deployment**: Containerized application deployable on Kubernetes
 
-## Development Status
 
-This project is actively maintained and in production use at multiple operations centers.
-
-## License
-
-Private - All rights reserved
